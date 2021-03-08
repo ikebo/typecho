@@ -471,14 +471,24 @@ class HyperDown
 
         // image
         $text = preg_replace_callback(
-            "/!\[((?:[^\]]|\\\\\]|\\\\\[)*?)\]\(((?:[^\)]|\\\\\)|\\\\\()+?)\)/",
+            "/!\[((?:[^\]]|\\\\\]|\\\\\[)*?)\]\(([^\)|\\\\\)|\\\\\(]+?)(=(\d*?)x(\d*))?\)/",
             function ($matches) use ($self) {
                 $escaped = htmlspecialchars($self->escapeBracket($matches[1]));
                 $url = $self->escapeBracket($matches[2]);
                 $url = $self->cleanUrl($url);
-                return $self->makeHolder(
-                    "<img src=\"{$url}\" alt=\"{$escaped}\" title=\"{$escaped}\">"
-                );
+
+                $holder_str = "<img src=\"{$url}\" alt=\"{$escaped}\" title=\"{$escaped}\" ";
+                if (count($matches) == 6) {
+                    $width = $matches[4];
+                    $height = $matches[5];
+                    if ($width !== '') {
+                        $holder_str .= "width=\"{$width}\" ";
+                    }
+                    if ($height !== '') {
+                        $holder_str .= "height=\"{$height}\"";
+                    }
+                }
+                return $self->makeHolder($holder_str . ">");
             },
             $text
         );
